@@ -1,13 +1,24 @@
 import React from 'react';
 import ReactOnRails from 'react-on-rails';
-//import { Provider } from 'react-redux';
+import { Provider } from 'react-redux';
 
-//import createStore from '../store/helloWorldStore';
+import createStore from '../store/signupFormStore';
 import SignupForm from '../containers/SignupForm';
 
-const SignupFormApp = (props) => (
-  <SignupForm {...props} />
-);
+import injectTapEventPlugin from 'react-tap-event-plugin';
+// Needed for onTouchTap
+// // http://stackoverflow.com/a/34015469/988941
+injectTapEventPlugin();
 
-// This is how react_on_rails can see the HelloWorldApp in the browser.
+const SignupFormApp = (props, _railsContext) => {
+  const store = createStore(props);
+  const reactComponent = (
+    <Provider store={store}>
+      <SignupForm />
+    </Provider>
+  );
+  return reactComponent;
+};
+
+// This is how react_on_rails can see the SignupFormApp in the browser.
 ReactOnRails.register({ SignupFormApp });

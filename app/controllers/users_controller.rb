@@ -1,5 +1,8 @@
 class UsersController < ApplicationController
   def new
-    @user = { name: "Stranger" }
+  end
+
+  def create
+    render :json => {result: :ok}, :status => :created
   end
 end

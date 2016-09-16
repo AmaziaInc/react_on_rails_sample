@@ -1,36 +1,62 @@
 import React, { PropTypes } from 'react';
+import getMuiTheme from 'material-ui/styles/getMuiTheme'
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import Paper from 'material-ui/Paper';
 import SignupFormWidget from '../components/SignupFormWidget';
+import MessageDialogWidget from '../components/MessageDialogWidget';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import Immutable from 'immutable';
+import * as signupFormActionCreators from '../actions/signupFormActionCreators';
+
+const styles = {
+  paperStyle: {
+    width: 400,
+    margin: 'auto',
+    padding: 20,
+  },
+};
+
+function select(state) {
+  // Which part of the Redux global state does our component want to receive as props?
+  // Note the use of `$$` to prefix the property name because the value is of type Immutable.js
+  return {
+    $$signupFormStore: state.$$signupFormStore,
+    $$messageDialogStore: state.$$messageDialogStore,
+  };
+}
 
 // Simple example of a React "smart" component
-export default class SignupForm extends React.Component {
-  static propTypes = {
-    name: PropTypes.string.isRequired, // this is passed from the Rails view
-  };
+const SignupForm = (props) => {
+  const { dispatch, $$signupFormStore, $$messageDialogStore } = props;
+  const actions = bindActionCreators(signupFormActionCreators, dispatch);
+  const { updateAttribute, updateValidStatus, submit, openDialog, closeDialog } = actions;
 
-  constructor(props, context) {
-    super(props, context);
+  const isValid = $$signupFormStore.get('isValid');
+  const open = $$messageDialogStore.get('open');
+  const title = $$messageDialogStore.get('title');
+  const message = $$messageDialogStore.get('message');
 
-    // How to set initial state in ES6 class syntax
-    // https://facebook.github.io/react/docs/reusable-components.html#es6-classes
-    this.state = { name: '', email: '', password: '' };
-  }
+  let {paperStyle} = styles;
+  return (
+    <MuiThemeProvider muiTheme={getMuiTheme()}>
+      <Paper style={paperStyle}>
+        <MessageDialogWidget {...{ open, title, message, closeDialog }} />
+        <SignupFormWidget {...{ isValid, updateAttribute, updateValidStatus, submit }} />
+      </Paper>
+    </MuiThemeProvider>
+  );
+};
 
-  updateAttribute(name, value) {
-    this.setState({ [name]: value });
-  }
+SignupForm.propTypes = {
+  dispatch: PropTypes.func.isRequired,
 
-  handleSubmit() {
-    console.log(this.state);
-    alert('[Dummy Form] Name: ' + this.state.name + ' Email: ' + this.state.email);
-  }
+  // This corresponds to the value used in function select above.
+  // We prefix all property and variable names pointing to Immutable.js objects with '$$'.
+  // This allows us to immediately know we don't call $$signupFormStore['someProperty'], but
+  // instead use the Immutable.js `get` API for Immutable.Map
+  $$signupFormStore: PropTypes.instanceOf(Immutable.Map).isRequired,
+  $$messageDialogStore: PropTypes.instanceOf(Immutable.Map).isRequired,
+};
 
-  render() {
-    return (
-      <div>
-        <SignupFormWidget
-          updateAttribute={(name, value) => this.updateAttribute(name, value)}
-          handleSubmit={() => this.handleSubmit()} />
-      </div>
-    );
-  }
-}
+export default connect(select)(SignupForm);
