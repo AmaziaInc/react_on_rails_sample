@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
-  get 'signup.html' => 'users#new'
+  root 'home#index'
 
-  get 'hello_world', to: 'hello_world#index'
+  get 'signup.html' => 'users#new', as: :signup
+
+  get 'hello_world' => 'hello_world#index', as: :hello_world
 
   resources :users, only: :create
 
